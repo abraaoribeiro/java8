@@ -3,4 +3,5 @@
 .classpath
 .c9/
 *.launch
+.bin
 .settings/
