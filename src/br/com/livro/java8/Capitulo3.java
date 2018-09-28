@@ -1,6 +1,5 @@
 package br.com.livro.java8;
 
-
 public class Capitulo3 {
 	public static void main(String[] args) {
 		// Contando de 0 a 1000 / Sem Lambda
@@ -30,34 +29,32 @@ public class Capitulo3 {
 				System.out.println(i);
 			}
 		}).start();
-		
+
 		Runnable o = () -> {
 			System.out.println("Eu sou o Lambda #º#");
-			
+
 		};
 		System.out.println(0);
 		System.out.println(o.getClass());
-		
-
-	}
-	@FunctionalInterface
-	interface Validador<T> {
-		boolean valida(T t);
-
-	}
-
-	Validador<String> validarCEP = new Validador<String>() {
-		public boolean valida(String valor) {
-			return valor.matches("[0-9{5}-[0-9{3}");
-		}
-	};
-
-	Validador<String> validarCep = valor -> {
-		return valor.matches("[0-9{5}[0-9{3}");
-	};
-	// Diminuido mais a expressao com o lambda
-	Validador<String> validarCep1 = valor -> valor.matches("[0-9{5}[0-9{3}");
 	
-
-}
-
+		}
+	
+		@FunctionalInterface
+		interface Validador<T> {
+			boolean valida(T t);
+	
+		}
+	
+		Validador<String> validarCEP = new Validador<String>() {
+			public boolean valida(String valor) {
+				return valor.matches("[0-9{5}-[0-9{3}");
+			}
+		};
+	
+		Validador<String> validarCep = valor -> {
+			return valor.matches("[0-9{5}[0-9{3}");
+		};
+		// Diminuido mais a expressao com o lambda
+		Validador<String> validarCep1 = valor -> valor.matches("[0-9{5}[0-9{3}");
+	
+	}
