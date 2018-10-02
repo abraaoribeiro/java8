@@ -11,10 +11,16 @@ public class Usuario {
 		this.pontos = pontos;
 		this.moderador = false;
 	}
-	public Usuario (String nome) {
+
+	public Usuario(String nome, int pontos, boolean moderador) {
+		this.nome = nome;
+		this.pontos = pontos;
+		this.moderador = moderador;
+	}
+
+	public Usuario(String nome) {
 		this.nome = nome;
 	}
-	
 
 	public Usuario() {
 
@@ -43,6 +49,7 @@ public class Usuario {
 	public boolean isModerador() {
 		return moderador;
 	}
+
 	public String toString() {
 		return "Usuario " + nome + " Pontos " + pontos;
 	}
