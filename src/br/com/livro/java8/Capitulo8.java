@@ -74,7 +74,7 @@ public class Capitulo8 {
 		// somando todos os pontos
 		int total = usuarios.stream().mapToInt(Usuario::getPontos).sum();
 
-		// Desmebrendo o sum()
+		// Desmembrando o sum()
 		int valorInicial = 0;
 		IntBinaryOperator operator = (a, b) -> a + b;
 		int total1 = usuarios.stream().mapToInt(Usuario::getPontos).reduce(valorInicial, operator);
