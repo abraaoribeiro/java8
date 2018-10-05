@@ -4,13 +4,17 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -156,11 +160,89 @@ public class Capitulo11 {
 		// Poderia ser feito com o methods referencs
 		// Stream<Product> p =
 		// payments.stream().map(Payment::getProduct).flatMap(List::stream);
-		
-		//mapea os produtos mais vendidos 
+
+		// mapea os produtos mais vendidos
 		Map<Product, Long> topProducts = payments.stream().flatMap(p -> p.getProduct().stream())
 				.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-		System.out.println(topProducts);
+		// System.out.println(topProducts);
+		// Imprimido linha a linhas
+		topProducts.entrySet().forEach(System.out::println);
+
+		// Pegando apenas o maior valor
+		topProducts.entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).ifPresent(System.out::println);
+
+		// Valores gerados por produto
+		Map<Product, BigDecimal> totalDoValorProduto = payments.stream().flatMap(p -> p.getProduct().stream())
+				.collect(Collectors.groupingBy(Function.identity(),
+						Collectors.reducing(BigDecimal.ZERO, Product::getPrice, BigDecimal::add)));
+
+		totalDoValorProduto.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getValue))
+				.forEach(System.out::println);
+
+		// Quais são os Produtos de Cada Cliente
+		Map<Customer, List<List<Product>>> customerProductList = payments.stream().collect(Collectors
+				.groupingBy(Payment::getCustomer, Collectors.mapping(Payment::getProduct, Collectors.toList())));
+
+		customerProductList.entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().getName()))
+				.forEach(System.out::println);
+
+		// Valores das entradas achatadas é o mesmo resultado porém sem utilizar listas
+		// alinhadas
+		Map<Customer, List<Product>> custumerProductsList2 = customerProductList.entrySet().stream()
+				.collect(Collectors.toMap(Map.Entry::getKey,
+						e -> e.getValue().stream().flatMap(List::stream).collect(Collectors.toList())));
+
+		custumerProductsList2.entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().getName()))
+				.forEach(System.out::println);
+
+		// System.out.println("Aqui é com o flatMap");
+		Map<Customer, List<Product>> map = payments.stream()
+				.collect(Collectors.groupingBy(Payment::getCustomer,
+						Collectors.mapping(Payment::getProduct, Collectors.toList())))
+				.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+						e -> e.getValue().stream().flatMap(List::stream).collect(Collectors.toList())));
+
+		map.entrySet().stream().sorted(Comparator.comparing(m -> m.getKey().getName())).forEach(System.out::println);
+
+		// usando o reduce
+		Map<Customer, List<Product>> map2 = payments.stream().collect(Collectors.groupingBy(Payment::getCustomer,
+				Collectors.reducing(Collections.emptyList(), Payment::getProduct, (l1, l2) -> {
+					List<Product> l = new ArrayList<>();
+					l.addAll(l1);
+					return l;
+				})));
+
+		map2.entrySet().stream().sorted(Comparator.comparing(m -> m.getKey().getName())).forEach(System.out::println);
+
+		// Cliente mais especial
+
+		Map<Customer, BigDecimal> map3 = payments.stream()
+				.collect(Collectors.groupingBy(Payment::getCustomer, Collectors.reducing(BigDecimal.ZERO,
+						p -> p.getProduct().stream().map(Product::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add),
+						BigDecimal::add)));
+
+		Function<Payment, BigDecimal> paymentTotal = p -> p.getProduct().stream().map(Product::getPrice)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		Map<Customer, BigDecimal> totalValuePerCustomer = payments.stream().collect(Collectors
+				.groupingBy(Payment::getCustomer, Collectors.reducing(BigDecimal.ZERO, paymentTotal, BigDecimal::add)));
+
+		totalValuePerCustomer.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getValue))
+				.forEach(System.out::println);
+
+		// Separado os pagamentos por Data
+		Map<YearMonth, List<Payment>> paymentsPerMoth = payments.stream()
+				.collect(Collectors.groupingBy(p -> YearMonth.from(p.getDate())));
+
+		paymentsPerMoth.entrySet().stream().forEach(System.out::println);
+		
+		//faturamento da loja
+		
+		
+		
+		
+		
+		
 	}
 
 }
