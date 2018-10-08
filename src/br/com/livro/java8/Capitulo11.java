@@ -6,15 +6,15 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BinaryOperator;
+import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,6 +71,7 @@ class Payment {
 	private List<Product> products;
 	private LocalDateTime date;
 	private Customer customer;
+	public Object getProduct;
 
 	public Payment(List<Product> products, LocalDateTime date, Customer customer) {
 
@@ -93,6 +94,72 @@ class Payment {
 
 	public String toString() {
 		return "[Payment:" + date.format(DateTimeFormatter.ofPattern("dd/MM,yy")) + " " + customer + " " + products
+				+ "]";
+	}
+
+}
+
+class Subscription {
+	private BigDecimal monthlyFee;
+	private LocalDateTime begin;
+	private Optional<LocalDateTime> end;
+	private Customer customer;
+
+	public Subscription(BigDecimal monthlyFee, LocalDateTime begin, Customer customer) {
+		this.monthlyFee = monthlyFee;
+		this.begin = begin;
+		this.end = Optional.empty();
+		this.customer = customer;
+	}
+
+	public Subscription(BigDecimal monthlyFee, LocalDateTime begin, LocalDateTime end, Customer customer) {
+		this.monthlyFee = monthlyFee;
+		this.begin = begin;
+		this.end = Optional.of(end);
+		this.customer = customer;
+	}
+
+	public BigDecimal getMothlyFee() {
+		return monthlyFee;
+	}
+
+	public void setMothlyFee(BigDecimal mothlyFee) {
+		this.monthlyFee = mothlyFee;
+	}
+
+	public LocalDateTime getBegin() {
+		return begin;
+	}
+
+	public void setBegin(LocalDateTime begin) {
+		this.begin = begin;
+	}
+
+	public Optional<LocalDateTime> getEnd() {
+		return end;
+	}
+
+	public void setEnd(Optional<LocalDateTime> end) {
+		this.end = end;
+	}
+
+	public Customer getCustomer() {
+		return customer;
+	}
+
+	public void setCustomer(Customer customer) {
+		this.customer = customer;
+	}
+
+	public BigDecimal getTotalPaid() {
+		return getMothlyFee()
+				.multiply(new BigDecimal(ChronoUnit.MONTHS.between(getBegin(), getEnd().orElse(LocalDateTime.now()))));
+
+	}
+
+	@Override
+	public String toString() {
+		return "Subscription [mothlyFee=" + monthlyFee + ", begin=" + begin + ", end=" + end + ", customer=" + customer
 				+ "]";
 	}
 
@@ -235,14 +302,37 @@ public class Capitulo11 {
 				.collect(Collectors.groupingBy(p -> YearMonth.from(p.getDate())));
 
 		paymentsPerMoth.entrySet().stream().forEach(System.out::println);
-		
-		//faturamento da loja
-		
-		
-		
-		
-		
-		
+
+		// faturamento da loja
+		Map<YearMonth, BigDecimal> paymentsValuePerMonth = payments.stream()
+				.collect(Collectors.groupingBy(p -> YearMonth.from(p.getDate()), Collectors.reducing(BigDecimal.ZERO,
+						p -> p.getProduct().stream().map(Product::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add),
+						BigDecimal::add)));
+
+		System.out.println(paymentsPerMoth);
+
+		// Sistema de Assinatura
+		BigDecimal monthlyFee = new BigDecimal("99.90");
+
+		Subscription s1 = new Subscription(monthlyFee, yesterday.minusMonths(5), abraao);
+		Subscription s2 = new Subscription(monthlyFee, yesterday.minusMonths(5), adriana);
+		Subscription s3 = new Subscription(monthlyFee, yesterday.minusMonths(5), jose);
+
+		List<Subscription> subscriptions = Arrays.asList(s1, s2, s3);
+
+		long meses1 = ChronoUnit.MONTHS.between(s1.getBegin(), LocalDateTime.now());
+
+		// Checa se a assinatura do usuario já terminou
+		long meses = ChronoUnit.MONTHS.between(s1.getBegin(), s1.getEnd().orElse(LocalDateTime.now()));
+
+		// calculando valor gerado pela assinatur
+		BigDecimal total1 = s1.getMothlyFee().multiply(
+				new BigDecimal(ChronoUnit.MONTHS.between(s1.getBegin(), s1.getEnd().orElse(LocalDateTime.now()))));
+
+		// somando todo total pago
+		BigDecimal totalPaid = subscriptions.stream().map(Subscription::getTotalPaid).reduce(BigDecimal.ZERO,
+				BigDecimal::add);
+
 	}
 
 }
